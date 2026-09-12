@@ -2,11 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY streamingService/package*.json ./
+COPY backend/streamingService/package*.json ./
 
 RUN npm ci --omit=dev
 
-COPY streamingService/. ./
+COPY backend/streamingService/. ./
 
 ENV NODE_ENV=production
 
