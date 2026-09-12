@@ -5,7 +5,6 @@ pipeline {
         AWS_REGION = 'us-east-1'
         AWS_ACCOUNT_ID = '087666071191'
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        ECR_REPOSITORY = 'streaming-auth'
     }
 
     stages {
@@ -25,18 +24,7 @@ pipeline {
                     ).trim()
 
                     echo "Git Commit: ${env.IMAGE_TAG}"
-                    echo "Docker Image: ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}"
                 }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                    docker build \
-                      -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} \
-                      ./backend/authService
-                '''
             }
         }
 
@@ -52,20 +40,98 @@ pipeline {
             }
         }
 
-        stage('Push Image to ECR') {
+        stage('Build Auth') {
             steps {
                 sh '''
-                    docker push \
-                      ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+                    docker build \
+                      -t ${ECR_REGISTRY}/streaming-auth:${IMAGE_TAG} \
+                      ./backend/authService
                 '''
             }
         }
 
-        stage('Verify Image') {
+        stage('Build Streaming') {
             steps {
                 sh '''
+                    docker build \
+                      -t ${ECR_REGISTRY}/streaming-stream:${IMAGE_TAG} \
+                      -f backend/streamingService/Dockerfile \
+                      .
+                '''
+            }
+        }
+
+        stage('Build Admin') {
+            steps {
+                sh '''
+                    docker build \
+                      -t ${ECR_REGISTRY}/streaming-admin:${IMAGE_TAG} \
+                      -f backend/adminService/Dockerfile \
+                      .
+                '''
+            }
+        }
+
+        stage('Build Chat') {
+            steps {
+                sh '''
+                    docker build \
+                      -t ${ECR_REGISTRY}/streaming-chat:${IMAGE_TAG} \
+                      -f backend/chatService/Dockerfile \
+                      .
+                '''
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                sh '''
+                    docker build \
+                      -t ${ECR_REGISTRY}/streaming-frontend:${IMAGE_TAG} \
+                      ./frontend
+                '''
+            }
+        }
+
+        stage('Push All Images') {
+            steps {
+                sh '''
+                    docker push ${ECR_REGISTRY}/streaming-auth:${IMAGE_TAG}
+                    docker push ${ECR_REGISTRY}/streaming-stream:${IMAGE_TAG}
+                    docker push ${ECR_REGISTRY}/streaming-admin:${IMAGE_TAG}
+                    docker push ${ECR_REGISTRY}/streaming-chat:${IMAGE_TAG}
+                    docker push ${ECR_REGISTRY}/streaming-frontend:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Verify Images') {
+            steps {
+                sh '''
+                    echo "Verifying ECR images..."
+
                     aws ecr describe-images \
-                      --repository-name ${ECR_REPOSITORY} \
+                      --repository-name streaming-auth \
+                      --image-ids imageTag=${IMAGE_TAG} \
+                      --region ${AWS_REGION}
+
+                    aws ecr describe-images \
+                      --repository-name streaming-stream \
+                      --image-ids imageTag=${IMAGE_TAG} \
+                      --region ${AWS_REGION}
+
+                    aws ecr describe-images \
+                      --repository-name streaming-admin \
+                      --image-ids imageTag=${IMAGE_TAG} \
+                      --region ${AWS_REGION}
+
+                    aws ecr describe-images \
+                      --repository-name streaming-chat \
+                      --image-ids imageTag=${IMAGE_TAG} \
+                      --region ${AWS_REGION}
+
+                    aws ecr describe-images \
+                      --repository-name streaming-frontend \
                       --image-ids imageTag=${IMAGE_TAG} \
                       --region ${AWS_REGION}
                 '''
@@ -75,11 +141,11 @@ pipeline {
 
     post {
         success {
-            echo "Streaming Auth image ${IMAGE_TAG} pushed successfully."
+            echo "All StreamingApp images pushed successfully with tag: ${IMAGE_TAG}"
         }
 
         failure {
-            echo 'Streaming Auth CI pipeline failed. Check the console output.'
+            echo "StreamingApp CI pipeline failed. Check the console output."
         }
 
         always {
