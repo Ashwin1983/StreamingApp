@@ -2,11 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY chatService/package*.json ./
+COPY backend/chatService/package*.json ./
 
 RUN npm ci --omit=dev
 
-COPY chatService/. ./
+COPY backend/chatService/. ./
 
 ENV NODE_ENV=production
 
