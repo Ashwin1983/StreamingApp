@@ -6,7 +6,6 @@ pipeline {
         AWS_ACCOUNT_ID = '087666071191'
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         ECR_REPOSITORY = 'streaming-auth'
-        IMAGE_TAG = '1.0.0'
     }
 
     stages {
@@ -14,6 +13,20 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Set Image Tag') {
+            steps {
+                script {
+                    env.IMAGE_TAG = sh(
+                        script: 'git rev-parse --short=7 HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Git Commit: ${env.IMAGE_TAG}"
+                    echo "Docker Image: ${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}"
+                }
             }
         }
 
@@ -62,7 +75,7 @@ pipeline {
 
     post {
         success {
-            echo 'Streaming Auth CI pipeline completed successfully.'
+            echo "Streaming Auth image ${IMAGE_TAG} pushed successfully."
         }
 
         failure {
@@ -70,6 +83,10 @@ pipeline {
         }
 
         always {
+            sh 'docker logout ${ECR_REGISTRY} || true'
+        }
+    }
+}
             sh 'docker logout ${ECR_REGISTRY} || true'
         }
     }
