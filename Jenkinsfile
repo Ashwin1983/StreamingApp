@@ -87,7 +87,3 @@ pipeline {
         }
     }
 }
-            sh 'docker logout ${ECR_REGISTRY} || true'
-        }
-    }
-}
