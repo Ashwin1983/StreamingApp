@@ -2,11 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY adminService/package*.json ./
+COPY backend/adminService/package*.json ./
 
 RUN npm ci --omit=dev
 
-COPY adminService/. ./
+COPY backend/adminService/. ./
 
 ENV NODE_ENV=production
 
