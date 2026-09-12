@@ -133,6 +133,9 @@ Automated tests are not yet included. Recommended smoke checks:
 2. Upload a small video + thumbnail via the admin dashboard (requires valid S3 credentials).
 3. Confirm playback from the browse page and verify that chat messages broadcast between multiple browser tabs.
 
+## CI/CD
+Jenkins automatically builds and pushes StreamingApp images to Amazon ECR.
+
 ## License
 
 MIT © StreamFlix Team
