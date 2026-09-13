@@ -1,0 +1,61 @@
+global:
+  namespace: streamingapp
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  registry: 087666071191.dkr.ecr.us-east-1.amazonaws.com
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+replicaCount:
+  auth: 1
+  streaming: 1
+  admin: 1
+  chat: 1
+  frontend: 1
+  mongodb: 1
+
+config:
+  mongoUri: mongodb://mongodb:27017/streamingapp
+  awsRegion: us-east-1
+  clientUrl: http://k8s-streamin-streamin-ca676dcfa1-477240795.us-east-1.elb.amazonaws.com
+  clientUrls: http://k8s-streamin-streamin-ca676dcfa1-477240795.us-east-1.elb.amazonaws.com
+  streamingPublicUrl: http://k8s-streamin-streamin-ca676dcfa1-477240795.us-east-1.elb.amazonaws.com
+
+aws:
+  s3Bucket: streamingapp-assets-087666071191
+
+jwt:
+  secretName: streamingapp-secrets
+  secretKey: JWT_SECRET
+  expiresIn: 1d
+
+mongodb:
+  image: mongo:7
+  storage:
+    existingClaim: mongodb-pvc
+    size: 10Gi
+    storageClass: gp2
+
+services:
+  mongodb:
+    port: 27017
+  auth:
+    port: 3001
+  streaming:
+    port: 3002
+  admin:
+    port: 3003
+  chat:
+    port: 3004
+  frontend:
+    port: 80
+
+ingress:
+  enabled: true
+  className: alb
+  scheme: internet-facing
+  targetType: ip
+  host: ""
