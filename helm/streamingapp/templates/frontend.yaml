@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: {{ .Values.image.registry }}/streaming-frontend:{{ .Values.image.tag }}
+          image: {{ .Values.image.registry }}/streaming-frontend:{{ .Values.image.frontendTag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.services.frontend.port }}

@@ -6,7 +6,8 @@ fullnameOverride: ""
 
 image:
   registry: 087666071191.dkr.ecr.us-east-1.amazonaws.com
-  tag: "1.0.0"
+  tag: "e384451"
+  frontendTag: "69c4192"
   pullPolicy: IfNotPresent
 
 replicaCount:
