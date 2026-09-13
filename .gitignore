@@ -130,3 +130,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Kubernetes secrets
+k8s/*-secret-local.yaml
+k8s/secrets-local.yaml
