@@ -8,6 +8,7 @@ spec:
   ports:
     - port: 27017
       targetPort: 27017
+      name: mongodb
   selector:
     app: mongodb
 
@@ -34,30 +35,20 @@ spec:
           ports:
             - containerPort: 27017
               name: mongodb
-
           readinessProbe:
             tcpSocket:
               port: 27017
             initialDelaySeconds: 10
             periodSeconds: 10
-
           livenessProbe:
             tcpSocket:
               port: 27017
             initialDelaySeconds: 30
             periodSeconds: 20
-
           volumeMounts:
-            - name: mongodb-data
+            - name: mongodb-storage
               mountPath: /data/db
-
-  volumeClaimTemplates:
-    - metadata:
-        name: mongodb-data
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: gp2
-        resources:
-          requests:
-            storage: 10Gi
+      volumes:
+        - name: mongodb-storage
+          persistentVolumeClaim:
+            claimName: mongodb-pvc
