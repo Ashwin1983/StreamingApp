@@ -83,15 +83,34 @@ pipeline {
             }
         }
 
-        stage('Build Frontend') {
+        stage('Build Frontend Image') {
             steps {
+                script {
+                    env.ALB_DNS = sh(
+                        script: '''
+                            kubectl get ingress streamingapp-ingress \
+                              -n streamingapp \
+                              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+                ''',
+                returnStdout: true
+            ).trim()
+
+            echo "ALB DNS: ${env.ALB_DNS}"
+                }
+
                 sh '''
                     docker build \
+                      --build-arg REACT_APP_AUTH_API_URL="http://${ALB_DNS}/api" \
+                      --build-arg REACT_APP_STREAMING_API_URL="http://${ALB_DNS}/api" \
+                      --build-arg REACT_APP_STREAMING_PUBLIC_URL="http://${ALB_DNS}" \
+                      --build-arg REACT_APP_ADMIN_API_URL="http://${ALB_DNS}/api/admin" \
+                      --build-arg REACT_APP_CHAT_API_URL="http://${ALB_DNS}/api/chat" \
+                      --build-arg REACT_APP_CHAT_SOCKET_URL="http://${ALB_DNS}" \
                       -t ${ECR_REGISTRY}/streaming-frontend:${IMAGE_TAG} \
                       ./frontend
                 '''
-            }
-        }
+           }
+       }
 
         stage('Push All Images') {
             steps {
